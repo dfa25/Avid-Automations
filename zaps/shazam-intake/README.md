@@ -36,8 +36,9 @@ Existing Drive → Notion zap takes over
 
 ## Channel ID
 
-- `#growth-capture` → `CHANNEL_ID_TBD`  ← update once confirmed
-- Alert channel (for unrouted files): same channel or dedicated — decide during build
+- `#debugging` (test channel) → `C0AFEGUUZ99`
+- `#growth-capture` (production channel) → `CHANNEL_ID_TBD` ← get from Slack: right-click channel → Copy Link → last segment of URL
+- Alert channel: `#debugging` during testing, swap to `#growth-capture` in production
 - Alert user mention: `<@U03LVEFBFHA>` (Marwin)
 
 ## Drive folder IDs
