@@ -40,8 +40,11 @@ raw_account      = extract_field(msg, "Account")
 raw_category     = extract_field(msg, "Category")
 raw_product_area = extract_field(msg, "Product Area")
 raw_summary      = extract_field(msg, "Summary")
-file_url         = input_data.get("file_url", "")
-file_type        = input_data.get("file_type", "").lower().strip(".")
+
+# file_url / file_type embedded in trigger message text by Zap 1
+# (Slack Workflow passes trigger message text through as a variable in Step 3)
+file_url  = input_data.get("file_url", "") or extract_field(msg, "file_url")
+file_type = (input_data.get("file_type", "") or extract_field(msg, "file_type")).lower().strip(".")
 
 # ---------------------------------------------------------------------------
 # 2. Normalise source_type

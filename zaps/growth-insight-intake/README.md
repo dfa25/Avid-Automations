@@ -66,43 +66,33 @@ Two-zap + Slack Workflow system that replaces the old two-zap + Zapier Storage s
 
 ---
 
-## The File-Fetching Blocker (Zap 2)
+## File-Fetching Solution (Confirmed ✅)
 
-**The problem:** Zap 1 has the file (from the Slack trigger). Zap 2 is triggered by the *form response* message, which is a separate Slack message with no file attached. Zap 2 needs a way to get the original file.
+**Tested in Workflow Builder:** "The text of the message" from the **triggering message** IS available as a variable in Step 3. Variables from the bot message (Step 1 — the Continue button post) are NOT available as body text.
 
-### Option A — Slack Workflow passes the file URL through (preferred if it works)
+**Confirmed approach — embed file URL in Zap 1's trigger-message reply:**
 
-1. Zap 1's bot message text includes the file's private download URL as a plain-text field, e.g.:
-   ```
-   New file ready for intake.
-   file_url: https://files.slack.com/files-pri/...
-   file_type: mp3
-   ```
-2. In Slack Workflow Builder, add a variable that captures the `file_url` from the trigger message text.
-3. The form completion post includes this variable.
-4. Zap 2 reads `file_url` directly from the form response message.
+The Slack Workflow is triggered by the message in the channel. Zap 1 must post a message into that same channel (or the original upload message must contain) the file URL in plain text. The Workflow then captures the full message text and includes it in the Step 3 form response. Zap 2 parses the URL out of the message text.
 
-**Test first:** Check if Slack Workflow Builder lets you extract a variable from the triggering message body. If yes, this is the cleanest path.
+### How to configure this end-to-end
 
-### Option B — Stage to Google Drive, then move (reliable fallback)
+**In Zap 1** — when posting the message that the Slack Workflow listens to, include:
+```
+📎 New file ready for intake.
+file_url: {{All Files URL Private Download}}
+file_type: {{All Files Filetype}}
+file_name: {{All Files Title}}
 
-1. **Zap 1** uploads the file immediately to a `_Staging` folder in Google Drive.
-2. **Zap 1's bot message** includes the staging Drive file ID in its text:
-   ```
-   staging_file_id: 1aBcDeFgH...
-   ```
-3. **Slack Workflow** captures `staging_file_id` from the trigger message and includes it in the form response.
-4. **Zap 2** reads `staging_file_id` from form response, then uses Google Drive → **Move File** to the correct destination folder.
+Click *Continue* to fill in the intake form.
+```
 
-**Staging folder ID:** Create one named `_Staging - Intake` in the shared Drive and paste the ID here: `STAGING_FOLDER_ID_TBD`
+**In Slack Workflow Builder (Step 3 — Send message to #debugging):**
+- In the message body, add the variable: `The text of the message` (from the trigger)
+- This will embed the full trigger message text (including the `file_url:` line) into the form response Zap 2 reads
 
-### Option C — Zapier Storage (if Slack Workflow can't pass variables)
-
-1. **Zap 1** stores file metadata in Zapier Storage with key = `intake_{slack_user_id}`.
-   - Value: `{"file_url": "...", "file_type": "mp3"}`
-2. **Zap 1's bot message** mentions the user by ID (e.g. `<@U03LVEFBFHA>` filled dynamically).
-3. **Slack Workflow** captures the Slack user ID from the triggering message.
-4. **Zap 2** uses Zapier Storage → **Get Value** with key `intake_{user_id}` to retrieve the file URL.
+**In Zap 2 (`zap2-route.py`):**
+- The `file_url`, `file_type`, and `file_name` are parsed out of the form response message text automatically — the script handles this (see `extract_field()` in the code)
+- Map `message_text` → Step 1 Text; leave `file_url` and `file_type` input fields empty (the script extracts them from the message)
 
 ---
 
